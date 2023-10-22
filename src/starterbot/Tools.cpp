@@ -1,5 +1,5 @@
 #include "Tools.h"
-
+#include "string"
 BWAPI::Unit Tools::GetClosestUnitTo(BWAPI::Position p, const BWAPI::Unitset& units)
 {
     BWAPI::Unit closestUnit = nullptr;
@@ -107,6 +107,7 @@ void Tools::DrawUnitCommands()
     }
 }
 
+
 void Tools::DrawUnitBoundingBoxes()
 {
     for (auto& unit : BWAPI::Broodwar->getAllUnits())
@@ -117,20 +118,27 @@ void Tools::DrawUnitBoundingBoxes()
     }
 }
 
-void SmartMove(BWAPI::Unit unit, BWAPI::Position position)
+void Tools::DrawMineralFieldInfo()
 {
-    // if there's no valid unit, ignore the command
-    if (!unit || !position) { return; }
+    // Iterate between all Units
+    for (auto& u : BWAPI::Broodwar->getAllUnits()) {
+        // Filter for Mineral
+        if (u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field ||
+            u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field_Type_2 ||
+            u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field_Type_3) 
+        {
+            // Get Mineral Field info
+            BWAPI::Position position = u->getPosition(); // position
+            int resources = u->getResources(); // actual resources
+            
+            // Convert integer to string and concatenate
+            std::string info = "Minerals: " + std::to_string(resources);
 
-    // Don't issue a 2nd command to the unit on the same frame
-    if (unit->getLastCommandFrame() >= BWAPI::Broodwar->getFrameCount()) { return; }
-
-    // If we are issuing the same type of command with the same arguments, we can ignore it
-    // Issuing multiple identical commands on successive frames can lead to bugs
-    if (unit->getLastCommand().getTargetPosition() == position) { return; }
-
-    // If there's nothing left to stop us, move!
-    unit->move(position);
+            // Draw the text on the map
+            BWAPI::Broodwar->drawTextMap(position, info.c_str());
+        }
+    }
+    
 }
 
 

@@ -66,7 +66,7 @@ void StarterBot::sendIdleWorkersToMinerals()
 }
 
 // Train more workers so we can gather more income
-void StarterBot::trainAdditionalWorkers()
+void StarterBot::trainAdditionalWorkers() 
 {
     const BWAPI::UnitType workerType = BWAPI::Broodwar->self()->getRace().getWorker();
     const int workersWanted = 20;
@@ -107,6 +107,7 @@ void StarterBot::drawDebugInformation()
     BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 10), "Hello, World!\n");
     Tools::DrawUnitCommands();
     Tools::DrawUnitBoundingBoxes();
+    Tools::DrawMineralFieldInfo();
 }
 
 // Called whenever the game ends and tells you if you won or not

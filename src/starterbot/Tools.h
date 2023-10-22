@@ -16,9 +16,10 @@ namespace Tools
 
     void DrawUnitBoundingBoxes();
     void DrawUnitCommands();
-
+    void DrawMineralFieldInfo();
+    
+    
     void SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target);
-    void SmartMove(BWAPI::Unit unit, BWAPI::Position position);
 
     int GetTotalSupply(bool inProgress = false);
 
