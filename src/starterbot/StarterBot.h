@@ -20,7 +20,6 @@ public:
     StarterBot();
 
     // functions that are triggered by various BWAPI events from main.cpp
-	void makeTheWorkersCircle();
 
 	void onStart();
 	void onFrame();

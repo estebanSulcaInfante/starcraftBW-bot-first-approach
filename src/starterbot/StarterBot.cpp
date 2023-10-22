@@ -24,6 +24,7 @@ void StarterBot::onStart()
     std::cout << "Height" << BWAPI::Broodwar->mapHeight() << "Width" << BWAPI::Broodwar->mapWidth();
 }
 
+// Called on each frame of the game
 void StarterBot::onFrame()
 {
     // Update our MapTools information
@@ -35,9 +36,6 @@ void StarterBot::onFrame()
     // Train more workers so we can gather more income
     trainAdditionalWorkers();
 
-    // On 50 workers make a circle
-    makeTheWorkersCircle();
-
     // Build more supply if we are going to run out soon
     buildAdditionalSupply();
 
@@ -46,32 +44,6 @@ void StarterBot::onFrame()
 
     // Draw some relevent information to the screen to help us debug the bot
     drawDebugInformation();
-}
-// Called on each frame of the game
-
-// On 50 workers make a circle
-void StarterBot::makeTheWorkersCircle()
-{
-    const BWAPI::Unitset& myUnits = BWAPI::Broodwar->self()->getUnits();
-    const BWAPI::UnitType workerType = BWAPI::Broodwar->self()->getRace().getWorker();
-    const int workersOwned = Tools::CountUnitsOfType(workerType, BWAPI::Broodwar->self()->getUnits());
-
-    // If we haven't less of 50 workers, skip
-    const int workersWanted = 20;
-    if (workersOwned < workersWanted) { return; }
-
-    // Calculate de the mid
-    const int height = BWAPI::Broodwar->mapHeight();
-    const int width = BWAPI::Broodwar->mapWidth();
-    BWAPI::Position midPos(10, 10);
-
-    for (auto& unit : myUnits)
-    {
-        if (unit->getType().isWorker())
-            //Tools::SmartMove(unit, midPos);
-            std::cout << "moving SCVS to width " << midPos.x << " height " << midPos.y;
-            unit->move(midPos);
-    }
 }
 
 // Send our idle workers to mine minerals so they don't just stand there
