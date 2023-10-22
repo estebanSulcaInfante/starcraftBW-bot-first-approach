@@ -4,7 +4,6 @@
 
 StarterBot::StarterBot()
 {
-    buildOrderStep = 0;
 }
 
 // Called when the bot starts!
@@ -132,9 +131,14 @@ void StarterBot::onUnitMorph(BWAPI::Unit unit)
 // Called whenever a text is sent to the game by a user
 void StarterBot::onSendText(std::string text) 
 { 
+    
     if (text == "/map")
     {
         m_mapTools.toggleDraw();
+    }
+    else if (text == "hola")
+    {
+        BWAPI::Broodwar->sendText("mundo:)");
     }
 }
 

@@ -7,7 +7,6 @@
 class StarterBot
 {
     MapTools m_mapTools;
-	int buildOrderStep;
     // helper functions to get you started with bot programming and learn the API
     void sendIdleWorkersToMinerals();
     void trainAdditionalWorkers();
