@@ -1,19 +1,42 @@
 #pragma once
 
 #include "MapTools.h"
+#include <vector>
 
 #include <BWAPI.h>
+class FrameHistory {
+private:
+	std::vector<int> history;
+	size_t index;
+	size_t count;
+public:
+	FrameHistory() = default;
+	FrameHistory(size_t size);
+
+
+	void addFrame(int frameData);
+
+	std::string serializeToString() const;
+	void printHistory();
+	float getAverage();
+
+};
 
 class StarterBot
 {
     MapTools m_mapTools;
-    // helper functions to get you started with bot programming and learn the API
+	
+	FrameHistory frameHistory;
+	size_t mineralFrameCount;
+	size_t mineralOnPreviousFrame;
+	
+	// helper functions to get you started with bot programming and learn the API
     void sendIdleWorkersToMinerals();
     void trainAdditionalWorkers();
     void buildAdditionalSupply();
     void drawDebugInformation();
-
-
+	void checkMineralDifference();
+	void drawIncomeInfo();
 public:
 
     StarterBot();
@@ -33,3 +56,6 @@ public:
 	void onUnitRenegade(BWAPI::Unit unit);
 
 };
+
+
+

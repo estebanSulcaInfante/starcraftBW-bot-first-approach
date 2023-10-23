@@ -2,9 +2,8 @@
 #include "Tools.h"
 #include "MapTools.h"
 
-StarterBot::StarterBot()
-{
-}
+StarterBot::StarterBot() : frameHistory(20), mineralFrameCount(0), mineralOnPreviousFrame(0) {}
+
 
 // Called when the bot starts!
 void StarterBot::onStart()
@@ -30,13 +29,16 @@ void StarterBot::onFrame()
     m_mapTools.onFrame();
 
     // Send our idle workers to mine minerals so they don't just stand there
-    sendIdleWorkersToMinerals();
+    //sendIdleWorkersToMinerals();
 
     // Train more workers so we can gather more income
-    trainAdditionalWorkers();
+    //trainAdditionalWorkers();
+
+    // Check mineral income information
+    checkMineralDifference();
 
     // Build more supply if we are going to run out soon
-    buildAdditionalSupply();
+    //buildAdditionalSupply();
 
     // Draw unit health bars, which brood war unfortunately does not do
     Tools::DrawUnitHealthBars();
@@ -101,13 +103,52 @@ void StarterBot::buildAdditionalSupply()
     }
 }
 
+// Draw Mineral Income on left top
+void StarterBot::drawIncomeInfo()
+{
+    // serialize
+    std::string incomeInfo = frameHistory.serializeToString();
+    std::string mineralFrameCountInfo = "Frame Count: " +
+        std::to_string(mineralFrameCount) + 
+        "\n";
+    std::string averageIncome = "Average Income (frames): " +
+        std::to_string(frameHistory.getAverage()) +
+        "\n";
+    std::string previousMineralFrameInfo = "Minerals on previous frame: " +
+        std::to_string(mineralOnPreviousFrame) + 
+        "\n";
+
+    // draw on left-top
+    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 10), incomeInfo.c_str());
+    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 20), mineralFrameCountInfo.c_str());
+    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(120, 20), averageIncome.c_str());
+    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 30), previousMineralFrameInfo.c_str());
+}
+
 // Draw some relevent information to the screen to help us debug the bot
 void StarterBot::drawDebugInformation()
 {
-    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 10), "Hello, World!\n");
+    drawIncomeInfo();
     Tools::DrawUnitCommands();
     Tools::DrawUnitBoundingBoxes();
     Tools::DrawMineralFieldInfo();
+}
+
+void StarterBot::checkMineralDifference()
+{
+    
+    // When worker deliver minerals
+    if (BWAPI::Broodwar->self()->minerals() - mineralOnPreviousFrame >= 8)
+    {
+        int framesBeforeLastIncome = mineralFrameCount;
+        frameHistory.addFrame(framesBeforeLastIncome);
+        mineralFrameCount = 0;
+    }
+    else
+    {
+        mineralFrameCount += 1;
+    }
+    mineralOnPreviousFrame = BWAPI::Broodwar->self()->minerals();
 }
 
 // Called whenever the game ends and tells you if you won or not
@@ -177,3 +218,43 @@ void StarterBot::onUnitRenegade(BWAPI::Unit unit)
 { 
 	
 }
+
+
+// ******************************************************************
+
+
+FrameHistory::FrameHistory(size_t size) : history(size), index(0), count(0) {}
+
+void FrameHistory::addFrame(int frameData) {
+    history[index] = frameData;
+    index = (index + 1) % history.size();
+    if (count < history.size()) count++;
+}
+
+void FrameHistory::printHistory() {
+    for (size_t i = 0; i < count; ++i) {
+        size_t idx = (index + history.size() - count + i) % history.size();
+        std::cout << history[idx] << " ";
+    }
+    std::cout << std::endl;
+}
+std::string FrameHistory::serializeToString() const {
+    std::string result = "Frame History: ";
+    for (size_t i = 0; i < count; ++i) {
+        size_t idx = (index + history.size() - count + i) % history.size();
+        result += std::to_string(history[idx]);
+        if (i < count - 1) result += ", ";
+    }
+    return result;
+}
+float FrameHistory::getAverage()
+{
+    float average = 0;
+    for (size_t i = 0; i < history.size(); i++)
+    {
+        average += history[i];
+    }
+    average = average / history.size();
+    return average;
+}
+

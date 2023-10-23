@@ -133,7 +133,7 @@ void Tools::DrawMineralFieldInfo()
             
             // Convert integer to string and concatenate
             std::string info = "Minerals: " + std::to_string(resources);
-
+            
             // Draw the text on the map
             BWAPI::Broodwar->drawTextMap(position, info.c_str());
         }
