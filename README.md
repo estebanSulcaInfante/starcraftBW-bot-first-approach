@@ -20,7 +20,10 @@ STARTcraft viene con un StarterBot escrito en C++ utilizando BWAPI 4.4.0. Este r
 3. Ejecuta `bin/RunC++BotAndStarcraft.bat`, lo que lanzará el ejecutable del bot y Starcraft / BWAPI.
 4. Abre `visualstudio/StartCraft.sln` en Visual Studio 2022 para modificar / recompilar el código.
 
-# Velocidad de Recoleccion
+# Proyecto Calculo de Velocidad de Recoleccion
+![logo](images/logo.png)
+
+## Velocidad de Recoleccion
 
 Hemos utilizado BWAPI para calcular la cantidad de frames necesarios para que un trabajador, de cualquier raza, aumente la cantidad de minerales en su tarea de recoleccion.
 
@@ -31,10 +34,10 @@ Hemos utilizado BWAPI para calcular la cantidad de frames necesarios para que un
 * Average Income (Frames): Promedio del Frame History, cantidad de frames que tarda el trabajador en promedio. 
 * Minerals on previous frame : Registro de la cantidad de mineral en el anterior frame
 
-# Velocidad de Disminucion de Cada Mineral Field
+## Velocidad de Disminucion de Cada Mineral Field
 
 Para calcular la velocidad de disminucion de cada mineral field, se utilizó BWAPI para obtener la cantidad de mineral de cada mineral field en cada frame.
 
 ![Imagen 2](images/p2.png)
-* avg: A la izquierda tiene el diferencial de frames entre cada disminucion de recursos(minerales) del mineral field y la derecha el de los ultimos 20 diferenciales.
+* avg: A la izquierda tiene el diferencial de frames entre cada disminucion de recursos(minerales) del mineral field y la derecha el promedio de los ultimos 20 diferenciales.
 
