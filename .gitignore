@@ -32,6 +32,7 @@ starcraftfull
 *.pdb
 *.ilk
 *.ERR
+*.gif
 bin/StarterBot_d.exe
 bin/StarterBot_d.exe
 bin/ReplayData.txt
