@@ -19,24 +19,46 @@ public:
 	std::string serializeToString() const;
 	void printHistory();
 	float getAverage();
-
+	int getLast();
 };
 
 class StarterBot
 {
     MapTools m_mapTools;
 	
+	// p1 requirements
 	FrameHistory frameHistory;
 	size_t mineralFrameCount;
 	size_t mineralOnPreviousFrame;
 	
+	// p2 requirements
+	bool botHaveControl;
+	size_t totalMineralFieldsOnScreen;
+	size_t totalWorkers;
+	struct MineralData {
+		int lastResources;
+		int lastFrame;
+		FrameHistory frameHistory;
+		int getSpeedInFrames() { return (BWAPI::Broodwar->getFrameCount() - lastFrame); }
+		MineralData() : frameHistory(20){}
+	};
+	std::map < BWAPI::Unit, MineralData> lastMineralFieldData;
+
+
 	// helper functions to get you started with bot programming and learn the API
     void sendIdleWorkersToMinerals();
     void trainAdditionalWorkers();
     void buildAdditionalSupply();
     void drawDebugInformation();
 	void checkMineralDifference();
+	void initMineralFieldResourcesMap();
+	void checkMineralFieldDifference();
+	void drawMineralFieldInfo();
 	void drawIncomeInfo();
+	void drawWorkersAndSupplyInfo();
+	void manageWorkers();
+	void sendWorkerOnlyOnceToMineral();
+
 public:
 
     StarterBot();

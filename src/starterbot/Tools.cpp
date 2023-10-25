@@ -1,5 +1,7 @@
 #include "Tools.h"
 #include "string"
+
+
 BWAPI::Unit Tools::GetClosestUnitTo(BWAPI::Position p, const BWAPI::Unitset& units)
 {
     BWAPI::Unit closestUnit = nullptr;
@@ -35,6 +37,22 @@ int Tools::CountUnitsOfType(BWAPI::UnitType type, const BWAPI::Unitset& units)
     return sum;
 }
 
+// Count just units already created, not in progress
+int Tools::CountCompletedUnitsOfType(BWAPI::UnitType type, const BWAPI::Unitset& units)
+{
+    int sum = 0;
+    for (auto& unit : units)
+    {
+        if (unit->getType() == type && unit->isCompleted())
+        {
+            sum++;
+        }
+    }
+    return sum;
+}
+
+
+
 BWAPI::Unit Tools::GetUnitOfType(BWAPI::UnitType type)
 {
     // For each unit that we own
@@ -51,10 +69,76 @@ BWAPI::Unit Tools::GetUnitOfType(BWAPI::UnitType type)
     return nullptr;
 }
 
+// get all workers of player
+BWAPI::Unitset Tools::getWorkers() {
+    BWAPI::Unitset workers;
+    for (auto& u : BWAPI::Broodwar->self()->getUnits()) {
+        if (u->getType().isWorker()) {
+            workers.insert(u);
+        }
+    }
+    return workers;
+}
+
 BWAPI::Unit Tools::GetDepot()
 {
     const BWAPI::UnitType depot = BWAPI::Broodwar->self()->getRace().getResourceDepot();
     return GetUnitOfType(depot);
+}
+
+// Get units on screen filter on the Unitset
+BWAPI::Unitset Tools::getUnitsOnScreen(BWAPI::Unitset& units) {
+    BWAPI::Unitset unitsOnScreen;
+
+    BWAPI::Position screenTopLeft = BWAPI::Broodwar->getScreenPosition();
+    BWAPI::Position screenBottomRight = screenTopLeft + BWAPI::Position(
+        Tools::SCREEN_WIDTH, Tools::SCREEN_HEIGHT);
+
+    for (auto& unit : units) {
+        BWAPI::Position unitPos = unit->getPosition();
+        BWAPI::UnitType type = unit->getType();
+
+        // Calcular los límites de la unidad
+        int left = unitPos.x - type.dimensionLeft();
+        int right = unitPos.x + type.dimensionRight();
+        int top = unitPos.y - type.dimensionUp();
+        int bottom = unitPos.y + type.dimensionDown();
+
+        // Verificar si la unidad está en la pantalla
+        if (right >= screenTopLeft.x && left <= screenBottomRight.x &&
+            bottom >= screenTopLeft.y && top <= screenBottomRight.y) {
+            unitsOnScreen.insert(unit);
+        }
+    }
+
+    return unitsOnScreen;
+}
+// Get all units on screen
+BWAPI::Unitset Tools::getUnitsOnScreen() {
+    BWAPI::Unitset unitsOnScreen;
+
+    BWAPI::Position screenTopLeft = BWAPI::Broodwar->getScreenPosition();
+    BWAPI::Position screenBottomRight = screenTopLeft + BWAPI::Position(
+        Tools::SCREEN_WIDTH, Tools::SCREEN_HEIGHT);
+
+    for (auto& unit : BWAPI::Broodwar->getAllUnits()) {
+        BWAPI::Position unitPos = unit->getPosition();
+        BWAPI::UnitType type = unit->getType();
+
+        // Calcular los límites de la unidad
+        int left = unitPos.x - type.dimensionLeft();
+        int right = unitPos.x + type.dimensionRight();
+        int top = unitPos.y - type.dimensionUp();
+        int bottom = unitPos.y + type.dimensionDown();
+
+        // Verificar si la unidad está en la pantalla
+        if (right >= screenTopLeft.x && left <= screenBottomRight.x &&
+            bottom >= screenTopLeft.y && top <= screenBottomRight.y) {
+            unitsOnScreen.insert(unit);
+        }
+    }
+
+    return unitsOnScreen;
 }
 
 // Attempt tp construct a building of a given type 
@@ -118,28 +202,27 @@ void Tools::DrawUnitBoundingBoxes()
     }
 }
 
-void Tools::DrawMineralFieldInfo()
-{
-    // Iterate between all Units
-    for (auto& u : BWAPI::Broodwar->getAllUnits()) {
-        // Filter for Mineral
-        if (u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field ||
-            u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field_Type_2 ||
-            u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field_Type_3) 
-        {
-            // Get Mineral Field info
-            BWAPI::Position position = u->getPosition(); // position
-            int resources = u->getResources(); // actual resources
-            
-            // Convert integer to string and concatenate
-            std::string info = "Minerals: " + std::to_string(resources);
-            
-            // Draw the text on the map
-            BWAPI::Broodwar->drawTextMap(position, info.c_str());
-        }
-    }
-    
-}
+//void Tools::DrawMineralFieldInfo()
+//{
+//    // Iterate between all Units
+//    for (auto& u : BWAPI::Broodwar->getAllUnits()) {
+//        // Filter for Mineral
+//        if (u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field ||
+//            u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field_Type_2 ||
+//            u->getType() == BWAPI::UnitTypes::Resource_Mineral_Field_Type_3) 
+//        {
+//            // Get Mineral Field info
+//            BWAPI::Position position = u->getPosition(); // position
+//            int resources = u->getResources(); // actual resources
+//            
+//            // Convert integer to string and concatenate
+//            std::string info = "Minerals: " + std::to_string(resources);
+//            
+//            // Draw the text on the map
+//            BWAPI::Broodwar->drawTextMap(position, info.c_str());
+//        }
+//    }    
+//}
 
 
 void Tools::SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target)

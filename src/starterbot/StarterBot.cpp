@@ -2,7 +2,9 @@
 #include "Tools.h"
 #include "MapTools.h"
 
-StarterBot::StarterBot() : frameHistory(20), mineralFrameCount(0), mineralOnPreviousFrame(0) {}
+StarterBot::StarterBot() : frameHistory(20), mineralFrameCount(0), 
+mineralOnPreviousFrame(0), botHaveControl(true),totalWorkers (3), 
+totalMineralFieldsOnScreen(1) {}
 
 
 // Called when the bot starts!
@@ -17,9 +19,11 @@ void StarterBot::onStart()
 
     // Call MapTools OnStart
     m_mapTools.onStart();
-    
+    std::cout << "totalW: " << totalWorkers << " totalMF: " << totalMineralFieldsOnScreen<<std::endl;
     std::cout << "Map: ";
     std::cout << "Height" << BWAPI::Broodwar->mapHeight() << "Width" << BWAPI::Broodwar->mapWidth();
+    
+    initMineralFieldResourcesMap();
 }
 
 // Called on each frame of the game
@@ -27,24 +31,111 @@ void StarterBot::onFrame()
 {
     // Update our MapTools information
     m_mapTools.onFrame();
-
-    // Send our idle workers to mine minerals so they don't just stand there
-    //sendIdleWorkersToMinerals();
-
-    // Train more workers so we can gather more income
-    //trainAdditionalWorkers();
+    
+    // Control automated bot actions
+    manageWorkers();
 
     // Check mineral income information
     checkMineralDifference();
 
-    // Build more supply if we are going to run out soon
-    //buildAdditionalSupply();
+    // Check mineral field difference
+    checkMineralFieldDifference();
 
     // Draw unit health bars, which brood war unfortunately does not do
     Tools::DrawUnitHealthBars();
 
     // Draw some relevent information to the screen to help us debug the bot
     drawDebugInformation();
+}
+
+// Fill mineralFieldResources map
+void StarterBot::initMineralFieldResourcesMap()
+{
+    BWAPI::Unitset mineralFields = Tools::getUnitsOfTypes(
+        BWAPI::UnitTypes::Resource_Mineral_Field,
+        BWAPI::UnitTypes::Resource_Mineral_Field_Type_2,
+        BWAPI::UnitTypes::Resource_Mineral_Field_Type_3
+    );
+
+    for (auto& mineralField : mineralFields)
+    {
+        lastMineralFieldData[mineralField].lastResources = mineralField->getResources();
+        lastMineralFieldData[mineralField].lastFrame = BWAPI::Broodwar->getFrameCount();
+    }
+}
+
+// Manage training, supply build and work orders for workers
+void StarterBot::manageWorkers()
+{
+    // Get all units on screen
+    BWAPI::Unitset units = Tools::getUnitsOnScreen();
+
+    // Avoid empty units on screen, case at game innit
+    if (units.size() == 0) { return; }
+
+    const BWAPI::UnitType workerType = BWAPI::Broodwar->self()->getRace().getWorker();
+
+    totalWorkers = Tools::CountCompletedUnitsOfType(workerType, units);
+    totalMineralFieldsOnScreen =
+        Tools::CountCompletedUnitsOfType(BWAPI::UnitTypes::Resource_Mineral_Field, units) +
+        Tools::CountCompletedUnitsOfType(BWAPI::UnitTypes::Resource_Mineral_Field_Type_2, units) +
+        Tools::CountCompletedUnitsOfType(BWAPI::UnitTypes::Resource_Mineral_Field_Type_3, units);
+
+
+
+    if (botHaveControl)
+    {
+        // Protocol to cancel bot control
+        if (totalMineralFieldsOnScreen == totalWorkers)
+        {
+            // Cancel bot control
+            botHaveControl = false;
+
+            // Send 1 worker to 1 mineral field (9 workers 9 mineral field)
+            sendWorkerOnlyOnceToMineral();
+            // Debug text on screen -- removable
+            BWAPI::Broodwar->sendText("Bot Controll on SCV off");
+
+            //end
+            return;
+        }
+        
+
+
+        // Send our idle workers to mine minerals so they don't just stand there
+        sendIdleWorkersToMinerals();
+
+        // Train more workers so we can gather more income
+        trainAdditionalWorkers();
+
+        // Build more supply if we are going to run out soon
+        buildAdditionalSupply();
+
+    }
+}
+
+// Send 1 workers to 1 mineral on frame (9 workers 9 minerals)
+void StarterBot::sendWorkerOnlyOnceToMineral()
+{
+    // Get units
+    BWAPI::Unitset myWorkers = Tools::getWorkers();
+
+    BWAPI::Unitset mineralFields = Tools::getUnitsOfTypes(BWAPI::UnitTypes::Resource_Mineral_Field,
+        BWAPI::UnitTypes::Resource_Mineral_Field_Type_2, BWAPI::UnitTypes::Resource_Mineral_Field_Type_3);
+    
+    // Control if there are no mineral fields on screen
+    if (mineralFields.empty()) return;
+
+    // Convert Unitset to Std::Vector
+    std::vector<BWAPI::Unit> mineralFieldsVector(mineralFields.begin(), mineralFields.end());
+    std::vector<BWAPI::Unit> myWorkersVector(myWorkers.begin(), myWorkers.end());
+
+    // Send workers to job
+    for (size_t i = 0; i < myWorkersVector.size(); ++i)
+    {
+        // Send 1 worker to 1 mineral field    
+        myWorkersVector[i]->gather(mineralFieldsVector[i]);
+    }
 }
 
 // Send our idle workers to mine minerals so they don't just stand there
@@ -72,7 +163,7 @@ void StarterBot::trainAdditionalWorkers()
 {
     const BWAPI::UnitType workerType = BWAPI::Broodwar->self()->getRace().getWorker();
     const int workersWanted = 20;
-    const int workersOwned = Tools::CountUnitsOfType(workerType, BWAPI::Broodwar->self()->getUnits());
+    const int workersOwned = Tools::CountCompletedUnitsOfType(workerType, BWAPI::Broodwar->self()->getUnits());
     if (workersOwned < workersWanted)
     {
         // get the unit pointer to my depot
@@ -103,6 +194,39 @@ void StarterBot::buildAdditionalSupply()
     }
 }
 
+void StarterBot::drawWorkersAndSupplyInfo()
+{
+    std::string workersAndMineralsInfo = "TWorkers: " + std::to_string(totalWorkers) +
+        " MFieldsOnScreen: " + std::to_string(totalMineralFieldsOnScreen);
+    std::string botInfo = "Bot control: " + std::to_string(botHaveControl);
+    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 80), workersAndMineralsInfo.c_str());
+    BWAPI::Broodwar->drawTextScreen(BWAPI::Position(10, 90), botInfo.c_str());
+}
+
+// Draw Mineral Field info on left
+void StarterBot::drawMineralFieldInfo()
+{
+    for (auto& [mineralField, data] : lastMineralFieldData)
+    {
+        BWAPI::Position position = mineralField->getPosition();
+
+        // Parsing
+        //std::string info = "id: " + std::to_string(mineralField->getID()) + "  " +
+        //    std::to_string(mineralField->getResources()) + "/" +
+        //    std::to_string(mineralField->getInitialResources()) + "\n" +
+        //    "lastF: " + std::to_string(BWAPI::Broodwar->getFrameCount() - data.lastFrame) + " "
+        //    "FrameCount: " + std::to_string(BWAPI::Broodwar->getFrameCount());
+        //    ;
+        
+        std::string info = std::to_string(data.frameHistory.getLast()) + 
+            ",avg: " + std::to_string(data.frameHistory.getAverage());
+
+        
+        
+        BWAPI::Broodwar->drawTextMap(position, info.c_str());
+    }
+}
+
 // Draw Mineral Income on left top
 void StarterBot::drawIncomeInfo()
 {
@@ -129,11 +253,14 @@ void StarterBot::drawIncomeInfo()
 void StarterBot::drawDebugInformation()
 {
     drawIncomeInfo();
+    drawMineralFieldInfo();
+    drawWorkersAndSupplyInfo();
     Tools::DrawUnitCommands();
     Tools::DrawUnitBoundingBoxes();
-    Tools::DrawMineralFieldInfo();
+    //Tools::DrawMineralFieldInfo();
 }
 
+// calculates how many frames takes a difference of minerals of a player
 void StarterBot::checkMineralDifference()
 {
     
@@ -149,6 +276,28 @@ void StarterBot::checkMineralDifference()
         mineralFrameCount += 1;
     }
     mineralOnPreviousFrame = BWAPI::Broodwar->self()->minerals();
+}
+// calculates how many frames takes a difference of minerals of a mineral field
+void StarterBot::checkMineralFieldDifference()
+{
+    
+    for (auto& [mineralField, data] : lastMineralFieldData)
+    {
+        int currentResources = mineralField->getResources();
+        int lastResources = data.lastResources;
+        
+        if (lastResources - currentResources >= 8)
+        {
+            // Los recursos han cambiado desde el último frame
+            //BWAPI::Broodwar->sendText("Los recursos del campo de minerales %d han cambiado: %d -> %d",
+            //    mineralField->getID(), lastResources, currentResources);
+
+            // Update mineral field data on last frame
+            data.frameHistory.addFrame(data.getSpeedInFrames());
+            data.lastResources = currentResources;
+            data.lastFrame = BWAPI::Broodwar->getFrameCount(); // start counting at game start
+        }
+    }
 }
 
 // Called whenever the game ends and tells you if you won or not
@@ -256,5 +405,10 @@ float FrameHistory::getAverage()
     }
     average = average / history.size();
     return average;
+}
+int FrameHistory::getLast() {
+    if (count == 0) { return 0; }  // Si no hay elementos, devuelve 0
+    size_t lastIdx = (index + history.size() - 1) % history.size();
+    return history[lastIdx];
 }
 

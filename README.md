@@ -30,3 +30,11 @@ Hemos utilizado BWAPI para calcular la cantidad de frames necesarios para que un
 * Frame Count : Contador de frames hasta una nueva recolección (aumento de 8 minerales).
 * Average Income (Frames): Promedio del Frame History, cantidad de frames que tarda el trabajador en promedio. 
 * Minerals on previous frame : Registro de la cantidad de mineral en el anterior frame
+
+# Velocidad de Disminucion de Cada Mineral Field
+
+Para calcular la velocidad de disminucion de cada mineral field, se utilizó BWAPI para obtener la cantidad de mineral de cada mineral field en cada frame.
+
+![Imagen 2](images/p2.png)
+* avg: A la izquierda tiene el diferencial de frames entre cada disminucion de recursos(minerales) del mineral field y la derecha el de los ultimos 20 diferenciales.
+
