@@ -45,3 +45,5 @@ Para calcular la velocidad de disminucion de cada mineral field, se utilizó BWA
 
 ![Imagen 3](images/p1p2uml.png)
 
+## Diagrama de Secuencia
+![Imagen 4](images/p1p2sec.png)
