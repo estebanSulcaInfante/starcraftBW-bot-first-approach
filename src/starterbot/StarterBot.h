@@ -42,7 +42,8 @@ class StarterBot
 		int getSpeedInFrames() { return (BWAPI::Broodwar->getFrameCount() - lastFrame); }
 		MineralData() : frameHistory(20){}
 	};
-	std::map < BWAPI::Unit, MineralData> lastMineralFieldData;
+	// este map es para conservar la informacion del frame anterior de la data del mineral field
+	std::map < BWAPI::Unit, MineralData > lastMineralFieldData;
 
 
 	// helper functions to get you started with bot programming and learn the API

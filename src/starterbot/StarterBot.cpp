@@ -30,22 +30,22 @@ void StarterBot::onStart()
 void StarterBot::onFrame()
 {
     // Update our MapTools information
-    m_mapTools.onFrame();
+    m_mapTools.onFrame(); // dave
     
     // Control automated bot actions
-    manageWorkers();
+    manageWorkers(); //p2
 
     // Check mineral income information
-    checkMineralDifference();
+    checkMineralDifference(); //p1
 
     // Check mineral field difference
-    checkMineralFieldDifference();
+    checkMineralFieldDifference(); //p2
 
     // Draw unit health bars, which brood war unfortunately does not do
-    Tools::DrawUnitHealthBars();
+    Tools::DrawUnitHealthBars(); // dave
 
     // Draw some relevent information to the screen to help us debug the bot
-    drawDebugInformation();
+    drawDebugInformation(); // p1 p2 dave
 }
 
 // Fill mineralFieldResources map
@@ -70,7 +70,7 @@ void StarterBot::manageWorkers()
     // Get all units on screen
     BWAPI::Unitset units = Tools::getUnitsOnScreen();
 
-    // Avoid empty units on screen, case at game innit
+    // Avoid empty units on screen, case at game innit - error handler
     if (units.size() == 0) { return; }
 
     const BWAPI::UnitType workerType = BWAPI::Broodwar->self()->getRace().getWorker();
@@ -80,8 +80,6 @@ void StarterBot::manageWorkers()
         Tools::CountCompletedUnitsOfType(BWAPI::UnitTypes::Resource_Mineral_Field, units) +
         Tools::CountCompletedUnitsOfType(BWAPI::UnitTypes::Resource_Mineral_Field_Type_2, units) +
         Tools::CountCompletedUnitsOfType(BWAPI::UnitTypes::Resource_Mineral_Field_Type_3, units);
-
-
 
     if (botHaveControl)
     {
@@ -99,9 +97,6 @@ void StarterBot::manageWorkers()
             //end
             return;
         }
-        
-
-
         // Send our idle workers to mine minerals so they don't just stand there
         sendIdleWorkersToMinerals();
 
@@ -109,12 +104,11 @@ void StarterBot::manageWorkers()
         trainAdditionalWorkers();
 
         // Build more supply if we are going to run out soon
-        buildAdditionalSupply();
-
+        buildAdditionalSupply(); // al final no se ejecuta porque no se necesita
     }
 }
 
-// Send 1 workers to 1 mineral on frame (9 workers 9 minerals)
+// Send 1 workers to 1 mineral on frame (9 workers 9 minerals) 
 void StarterBot::sendWorkerOnlyOnceToMineral()
 {
     // Get units
@@ -252,12 +246,12 @@ void StarterBot::drawIncomeInfo()
 // Draw some relevent information to the screen to help us debug the bot
 void StarterBot::drawDebugInformation()
 {
-    drawIncomeInfo();
-    drawMineralFieldInfo();
-    drawWorkersAndSupplyInfo();
-    Tools::DrawUnitCommands();
-    Tools::DrawUnitBoundingBoxes();
-    //Tools::DrawMineralFieldInfo();
+    drawIncomeInfo(); // p1
+    drawMineralFieldInfo(); // p2
+    drawWorkersAndSupplyInfo(); // p2
+    Tools::DrawUnitCommands(); // dave 
+    Tools::DrawUnitBoundingBoxes(); // dave
+    //Tools::DrawMineralFieldInfo(); // esteban:3
 }
 
 // calculates how many frames takes a difference of minerals of a player
@@ -281,7 +275,7 @@ void StarterBot::checkMineralDifference()
 void StarterBot::checkMineralFieldDifference()
 {
     
-    for (auto& [mineralField, data] : lastMineralFieldData)
+    for (auto& [mineralField, data] : lastMineralFieldData) // for itera en el mapa/diccionario en python
     {
         int currentResources = mineralField->getResources();
         int lastResources = data.lastResources;
