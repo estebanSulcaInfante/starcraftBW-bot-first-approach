@@ -41,3 +41,7 @@ Para calcular la velocidad de disminucion de cada mineral field, se utilizó BWA
 ![Imagen 2](images/p2.png)
 * avg: A la izquierda tiene el diferencial de frames entre cada disminucion de recursos(minerales) del mineral field y la derecha el promedio de los ultimos 20 diferenciales.
 
+## Diagrama UML
+
+![Imagen 3](images/p1p2uml.png)
+
